@@ -37,7 +37,7 @@ namespace Metric.Editor.Generator
 		public bool generateOperationsForAllUnits;
 		public GenerationBlock[] GenerationBlocksFinal;
 		[Space]
-		public UnitEditorDescriptor[] UnitEditors = UnitEditorDescriptor.Defaults;
+		public UnitEditorDescriptor[] UnitEditors = UnitEditorDescriptor.GetDefaults();
 		
 		[Space(32)] public bool GenerateButton;
 		public bool DryRun, SaveInTestDir;

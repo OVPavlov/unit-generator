@@ -17,7 +17,7 @@ namespace Units.Editor
             
             position.width -= SelectorSize;
 
-            int idx = editorData.intValue + defaultIdx;
+            int idx = Mathf.Clamp(editorData.intValue + defaultIdx, 0, powers.Length);
             double pow = powers[idx];
 
 

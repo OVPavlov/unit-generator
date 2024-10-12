@@ -62,81 +62,84 @@ namespace Metric.Editor.Generator
 		}
 
 
-		public static readonly UnitEditorDescriptor[] Defaults =
+		public static UnitEditorDescriptor[] GetDefaults()
 		{
-			new()
+			return new UnitEditorDescriptor[]
 			{
-				unit = "rad", suf = "rad", description = "radian",
-				suffixes = new SuffixDescriptor[]
+				new()
 				{
-					new("′", "arcminute", Mathf.Rad2Deg / 60.0),
-					new("\u00b0", "degree", Mathf.Rad2Deg),
-					new("turn", "turn", 2.0 * Mathf.PI)
-				}
-			},
-			new()
-			{
-				unit = "kg", suf = "kg", description = "kilogram",
-				suffixes = new SuffixDescriptor[]
+					unit = "rad", suf = "rad", description = "radian",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("′", "arcminute", Mathf.Deg2Rad / 60.0),
+						new("\u00b0", "degree", Mathf.Deg2Rad),
+						new("turn", "turn", (2.0 * Mathf.PI))
+					}
+				},
+				new()
 				{
-					new("μg", "microgram", 1e-9),
-					new("mg", "milligram", 1e-6),
-					new("g", "gram", 1e-3),
-					new("t", "tonne", 1e+3),
-					new("kt", "kilotonne", 1e+6)
-				}
-			},
-			new()
-			{
-				unit = "m", suf = "m", description = "metre",
-				suffixes = new SuffixDescriptor[]
+					unit = "kg", suf = "kg", description = "kilogram",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("μg", "microgram", 1e-9),
+						new("mg", "milligram", 1e-6),
+						new("g", "gram", 1e-3),
+						new("t", "tonne", 1e+3),
+						new("kt", "kilotonne", 1e+6)
+					}
+				},
+				new()
 				{
-					new("μm", "micrometre", 1e-6),
-					new("mm", "millimetre", 1e-3),
-					new("cm", "centimetre", 1e-2),
-					new("km", "kilometre", 1e+3)
-				}
-			},
-			new()
-			{
-				unit = "s", suf = "s", description = "second",
-				suffixes = new SuffixDescriptor[]
+					unit = "m", suf = "m", description = "metre",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("μm", "micrometre", 1e-6),
+						new("mm", "millimetre", 1e-3),
+						new("cm", "centimetre", 1e-2),
+						new("km", "kilometre", 1e+3)
+					}
+				},
+				new()
 				{
-					new("ns", "nanosecond", 1e-9),
-					new("μs", "microsecond", 1e-6),
-					new("ms", "millisecond", 1e-3),
-					new("min", "minute", 60),
-					new("h", "hour", (60 * 60)),
-					new("day", "day", (60 * 60 * 24))
-				}
-			},
-			new()
-			{
-				unit = "mps", suf = "m \u2044 s", description = "",
-				suffixes = new SuffixDescriptor[]
+					unit = "s", suf = "s", description = "second",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("ns", "nanosecond", 1e-9),
+						new("μs", "microsecond", 1e-6),
+						new("ms", "millisecond", 1e-3),
+						new("min", "minute", 60),
+						new("h", "hour", (60 * 60)),
+						new("day", "day", (60 * 60 * 24))
+					}
+				},
+				new()
 				{
-					new("mm \u2044 s", "", 1e-3),
-					new("km \u2044 s", "", 1e+3)
-				}
-			},
-			new()
-			{
-				unit = "mps2", suf = "m \u2044 s²", description = "",
-				suffixes = new SuffixDescriptor[]
+					unit = "mps", suf = "m \u2044 s", description = "",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("mm \u2044 s", "", 1e-3),
+						new("km \u2044 s", "", 1e+3)
+					}
+				},
+				new()
 				{
-					new("mm \u2044 s²", "", 1e-3),
-					new("km \u2044 s²", "", 1e+3)
-				}
-			},
-			new()
-			{
-				unit = "m2", suf = "m²", description = "",
-				suffixes = new SuffixDescriptor[]
+					unit = "mps2", suf = "m \u2044 s²", description = "",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("mm \u2044 s²", "", 1e-3),
+						new("km \u2044 s²", "", 1e+3)
+					}
+				},
+				new()
 				{
-					new("mm²", "", 1e-6),
-					new("km²", "", 1e+6)
-				}
-			},
-		};
+					unit = "m2", suf = "m²", description = "",
+					suffixes = new SuffixDescriptor[]
+					{
+						new("mm²", "", 1e-6),
+						new("km²", "", 1e+6)
+					}
+				},
+			};
+		}
 	}
 }
