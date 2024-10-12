@@ -3,16 +3,18 @@
   "displayName": "Unit Generator",
   "version": "1.0.0",
   "unity": "2019.1",
-  "description": "Analizes shaders",
+  "description": "Generates physics metric units, and performs compile time dimensional analysis",
   "keywords": [
     "metric",
     "unit",
     "physics",
-    "math"
+    "math",
+    "dimensional analysis"
   ],
-  "documentationUrl": "https://github.com/OVPavlov/shader-analyzer",
-  "changelogUrl": "https://github.com/OVPavlov/shader-analyzer",
-  "licensesUrl": "https://github.com/OVPavlov/shader-analyzer/blob/main/LICENSE",
+  
+  "documentationUrl": "https://github.com/OVPavlov/unit-generator",
+  "changelogUrl": "https://github.com/OVPavlov/unit-generator",
+  "licensesUrl": "https://github.com/OVPavlov/unit-generator/blob/main/LICENSE",
   "author": {
     "name": "ovpavlov",
     "url": "https://github.com/OVPavlov"

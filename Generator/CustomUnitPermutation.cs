@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Metric.Editor.Generator
 {
 	[System.Serializable]
-	public struct CustomUnitPermutation
+	internal class CustomUnitPermutation
 	{
 		public string[] Units;
+		public ResultFilter resultFilter = ResultFilter.Default;
 
 		public List<List<T>> GetAllCombinations<T>(T[] array, int minLength, int maxLength)
 		{
@@ -39,26 +41,34 @@ namespace Metric.Editor.Generator
 				}
 			}
 		}
-
-		public static IEnumerable<T[]> Permutate<T>(T[] array)
+		
+		public static void Permutate<T>(T[] array, System.Action<T[]> action)
 		{
-			if (array.Length == 1)
-				yield return array;
-			else
+			int[] c = new int[array.Length];
+			action(array);
+
+			int i = 1;
+			while (i < array.Length)
 			{
-				for (int i = 0; i < array.Length; i++)
+				if (c[i] < i)
 				{
-					T[] remaining = array.Where((_, index) => index != i).ToArray();
-					foreach (var permutation in Permutate(remaining))
-					{
-						yield return new T[] { array[i] }.Concat(permutation).ToArray();
-					}
+					int swapIndex = (i % 2 == 0) ? 0 : c[i];
+					(array[swapIndex], array[i]) = (array[i], array[swapIndex]);
+					action(array);
+					c[i]++;
+					i = 1;
+				}
+				else
+				{
+					c[i] = 0;
+					i++;
 				}
 			}
 		}
-
+		
 		internal void Permutation(UnitStructGenerator gen)
 		{
+			using var _ = new BeforeAndAfter($"Permutation using [{string.Join(", ", Units)}]", gen);
 			var units = Units.Select(gen.GetUnitByName).ToArray();
 			var comb = GetAllCombinations(units, units.Length, units.Length);
 			List<(Unit, bool)[]> equations = new List<(Unit, bool)[]>();
@@ -79,25 +89,32 @@ namespace Metric.Editor.Generator
 					equations.Add(eq);
 				}
 			}
+			
+			void Action((Unit, bool)[] permutation)
+			{
+				Unit previous = permutation[0].Item1;
+				for (int i = 1; i < permutation.Length; i++)
+				{
+					var b = permutation[i].Item1;
+					var multiply = permutation[i].Item2;
 
+					var a = previous;
+
+					if (a == null) a = UnitStructGeneratorLvl0.Float[1];
+					if ((a.VecSize != b.VecSize) & (a.VecSize != 1) & (b.VecSize != 1)) continue;
+					if (!a.Fraction.HasUnit & !b.Fraction.HasUnit) continue;
+
+					var frac = new Fraction(a.Fraction, multiply, b.Fraction);
+					if (resultFilter.Drop(gen, a, b, frac)) continue;
+					
+					Unit resUnit = gen.ToUnit(frac);
+					gen.Ops.Add(new Op(resUnit, a, multiply, b));
+					previous = resUnit;
+				}
+			}
 			foreach (var equation in equations)
 			{
-				var permutations = Permutate(equation);
-				foreach (var permutation in permutations)
-				{
-					Unit previous = permutation[0].Item1;
-					for (int i = 1; i < permutation.Length; i++)
-					{
-						var b = permutation[i].Item1;
-						var multiply = permutation[i].Item2;
-
-						gen.AddOp(previous, multiply ? '*' : '/', b, null);
-
-						var frac = Fraction.PerformUnitAnalysis(previous.Fraction, multiply, b.Fraction);
-						previous = gen.ToUnit(frac);
-					}
-				}
-
+				Permutate(equation, Action);
 			}
 		}
 	}

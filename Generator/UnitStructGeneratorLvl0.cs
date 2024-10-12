@@ -5,17 +5,17 @@ namespace Metric.Editor.Generator
 {
     internal class UnitStructGeneratorLvl0
     {
-        public Dictionary<string, Unit> Units = new();
+        public Dictionary<long, Unit> Units = new();
         protected Dictionary<string, Unit> _structNames = new();
         public HashSet<Op> Ops = new();
         public HashSet<string> MathOps = new();
         
-        protected static readonly Unit[] Float =
+        public static readonly Unit[] Float =
         {
             null,
-            new() { Name = "float", VarName = "f", Fraction = new Fraction(1) },
-            new() { Name = "float2", VarName = "v", Fraction = new Fraction(2) },
-            new() { Name = "float3", VarName = "v", Fraction = new Fraction(3) },
+            new() { Name = "float", VarName = "f", Fraction = new Fraction(1), Tag = Tag.Dimensionless},
+            new() { Name = "float2", VarName = "v", Fraction = new Fraction(2), Tag = Tag.Dimensionless },
+            new() { Name = "float3", VarName = "v", Fraction = new Fraction(3), Tag = Tag.Dimensionless },
         };
 
         public UnitStructGeneratorLvl0()
@@ -27,7 +27,7 @@ namespace Metric.Editor.Generator
         }
 
 
-        public bool AddOp(Unit a, char op, Unit b, System.Func<Unit, Unit, Fraction, bool> drop)
+        public bool AddOp(Unit a, char op, Unit b, System.Func<UnitStructGeneratorLvl0, Unit, Unit, Fraction, bool> drop)
         {
             if (a == null) a = Float[1];
             if ((a.VecSize != b.VecSize) & (a.VecSize != 1) & (b.VecSize != 1)) return false;
@@ -41,11 +41,11 @@ namespace Metric.Editor.Generator
                 _ => throw new System.Exception($"Unknown operator {op}")
             };
 
-            var frac = Fraction.PerformUnitAnalysis(a.Fraction, multiply, b.Fraction);
+            var frac = new Fraction(a.Fraction, multiply, b.Fraction);
 
             if (drop != null)
             {
-                if (drop(a, b, frac)) return false;
+                if (drop(this, a, b, frac)) return false;
             }
             
             Unit resUnit = ToUnit(frac);
@@ -77,10 +77,10 @@ namespace Metric.Editor.Generator
         public void AddUnit(Unit unit)
         {
             if (Units.TryGetValue(unit.Fraction.ID, out var c))
-                throw new System.Exception($"{unit.Name}({unit.Summary}) with id {unit.Fraction.ID} collides with {c.Name}({c.Summary})");
+                throw new System.Exception($"{unit.Name}({unit.Summary}) with id {unit.Fraction.DebugID()} collides with {c.Name}({c.Summary})");
             unit.Init();
             if (_structNames.TryGetValue(unit.Name, out var c2)) 
-                throw new System.Exception($"{unit.Fraction.ID}({unit.Summary}) with name {unit.Name} collides with {c2.Fraction.ID}({c2.Summary})");
+                throw new System.Exception($"name {unit.Name} collision\n{unit.Fraction.DebugID()}({unit.Summary}) collides with \n{c2.Fraction.DebugID()}({c2.Summary})");
             Units.Add(unit.Fraction.ID, unit);
             _structNames.Add(unit.Name, unit);
         }
@@ -105,20 +105,6 @@ namespace Metric.Editor.Generator
             }
             return list;
         }
-        public List<Unit> GetUnits(bool excluding, params string[] unitNames)
-        {
-            var set = new HashSet<string>(unitNames.Select(s => "1" + s));
-            
-            var list = new List<Unit>();
-            foreach (var unit in Units.Values)
-            {
-                if (set.Contains(unit.Fraction.ID) ^ excluding)
-                {
-                    list.Add(unit);
-                }
-            }
-            return list;
-        }
 
         public List<Unit> GetUnits(Tag tags)
         {
@@ -133,22 +119,15 @@ namespace Metric.Editor.Generator
 
         public void GenerateMathOps()
         {
-            foreach (var unit in Units.Values)
+            foreach (var unit in Units.Values.ToList())
             {
-                var allPowersMulOf2 = unit.Fraction.Dict.Values.All(p => (p != 0) & ((p & 1) == 0));
+
+                var allPowersMulOf2 = unit.Fraction.All((u, p) => (p & 1) == 0);
                 if (allPowersMulOf2 && unit.Fraction.HasUnit)
                 {
-                    var d2 = new Dictionary<string, int>();
-                    foreach (var u in unit.Fraction.Dict)
-                    {
-                        d2[u.Key] = u.Value / 2;
-                    }
-
-                    var frac = new Fraction(unit.VecSize,
-                        unit.Fraction.Dict.ToDictionary(p => p.Key, p => p.Value / 2));
+                    var frac  = new Fraction(unit.VecSize, unit.Fraction, (u, p) => p / 2);
                     var result = ToUnit(frac);
-
-
+                    
                     var varName = unit.VarName ?? "x";
                     if(result == null) continue;
                     MathOps.Add($"{result.Name} sqrt({unit.Name} {varName}) => new {result.Name}(System.MathF.Sqrt({varName}.{unit.InField}));");

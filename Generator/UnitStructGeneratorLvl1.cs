@@ -7,7 +7,6 @@ namespace Metric.Editor.Generator
 {
 	internal class UnitStructGeneratorLvl1 : UnitStructGeneratorLvl0
 	{
-		public static bool AllowMathematicsInNonVectorClasses = true;
 		private void GenerateStruct(StringBuilder sb, Unit unit)
 		{
 			if (!unit.Fraction.HasUnit) return;
@@ -171,34 +170,26 @@ namespace Metric.Editor.Generator
 		{
 			foreach (var op in Ops)
 			{
-				var host = op.A.Fraction.Dict.Count > op.B.Fraction.Dict.Count ? op.B : op.A;
+				var host = op.A.Fraction.Complexity> op.B.Fraction.Complexity ? op.B : op.A;
 				if (op.A.VecSize != op.B.VecSize)
 				{
 					host = op.A.VecSize < op.B.VecSize ? op.B : op.A;
 				}
 				if (!op.A.Fraction.HasUnit) host = op.B;
 				if (!op.B.Fraction.HasUnit) host = op.A;
-				if (!AllowMathematicsInNonVectorClasses && (
-					    !op.A.Fraction.HasUnit && op.A.VecSize > 1 && op.B.VecSize == 1 || 
-					    !op.B.Fraction.HasUnit && op.B.VecSize > 1 && op.A.VecSize == 1))
-				{
-					continue;
-				}
 				host.Ops.Add(op);
 			}
 			Ops.Clear();
 		}
 
 
-		public void GenerateCustomOperators(System.Func<Unit, Unit, Fraction, bool>  drop)
+		public void GenerateCustomOperators(System.Func<UnitStructGeneratorLvl0, Unit, Unit, Fraction, bool>  drop)
 		{
 			GenerateCustomOperators(drop, Units.Values.ToList());
 		}
 
-		public void GenerateCustomOperators(System.Func<Unit, Unit, Fraction, bool> drop, IEnumerable<Unit> units)
+		public void GenerateCustomOperators(System.Func<UnitStructGeneratorLvl0, Unit, Unit, Fraction, bool> drop, IEnumerable<Unit> units)
 		{
-			int opsBefore = Ops.Count;
-			int unitsBefore = Units.Count; 
 			IList<Unit> list = units as IList<Unit> ?? units.ToList();
 			foreach (var a in list)
 			{ 
@@ -208,8 +199,6 @@ namespace Metric.Editor.Generator
 					AddOp(a, '*', b, drop);
 				}
 			}
-
-			Debug.Log($"Generation using {list.Count}units:\t {opsBefore} => {Ops.Count} (+{Ops.Count - opsBefore})ops;  \t{unitsBefore} => {Units.Count} (+{Units.Count - unitsBefore})units");
 		}
 
 

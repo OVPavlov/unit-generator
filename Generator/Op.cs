@@ -16,10 +16,8 @@ namespace Metric.Editor.Generator
 			B = b;
 			Res = res;
 			Multiply = multiply;
-			if (multiply &&
-			    string.Compare(a.Fraction.ID, b.Fraction.ID, StringComparison.Ordinal) > 0)
+			if (multiply && a.Fraction.ID > b.Fraction.ID) // to maintain fixed order
 			{
-
 				A = b;
 				B = a;
 			}
@@ -92,7 +90,7 @@ namespace Metric.Editor.Generator
 
 		public bool Equals(Op other)
 		{
-			return Equals(A, other.A) && Equals(B, other.B) && Equals(Res, other.Res) && Multiply == other.Multiply;
+			return A == other.A & B == other.B & Multiply == other.Multiply;
 		}
 
 		public override bool Equals(object obj)
@@ -102,7 +100,7 @@ namespace Metric.Editor.Generator
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(A, B, Res, Multiply);
+			return HashCode.Combine(A, B, Multiply);
 		}
 	}
 }

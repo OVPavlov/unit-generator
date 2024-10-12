@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Metric.Editor.Generator
 {
 	[System.Flags]
-	public enum BaseUnits
+	internal enum BaseUnits
 	{
 		s = 1 << 0,
 		kg = 1 << 1,
@@ -13,9 +14,16 @@ namespace Metric.Editor.Generator
 		mol = 1 << 5,
 		cd = 1 << 6,
 		rad = 1 << 7,
-	}
+		
+		
+		SI = s|kg|m|A|K|mol|cd,
+		Kinematic = s|kg|m,
+		
+		dimentionless = 1 << 31
+	};
+	
 	[System.Serializable]
-	public struct BasicUnitFilter
+	internal struct BasicUnitFilter
 	{
 		public BaseUnits Units;
 		public Tag Tags;
@@ -27,7 +35,4 @@ namespace Metric.Editor.Generator
 			gen.AddUnits(units);
 		}
 	}
-	
-
-	
 }

@@ -2,12 +2,11 @@ using System;
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Metric.Editor.Generator
 {
 	[System.Serializable]
-	public struct UnitEditorDescriptor
+	internal struct UnitEditorDescriptor
 	{
 		[System.Serializable]
 		public struct SuffixDescriptor

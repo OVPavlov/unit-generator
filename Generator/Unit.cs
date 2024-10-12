@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Metric.Editor.Generator
 {
 
 	[System.Flags]
-	public enum Tag
+	internal enum Tag
 	{
 		/// <summary>
 		/// has no special case
@@ -98,6 +97,7 @@ namespace Metric.Editor.Generator
 
 		Vector = 1 << 5,
 
+		Dimensionless = 1 << 6,
 	}
 
 
@@ -113,7 +113,7 @@ namespace Metric.Editor.Generator
 		public int VecSize => Fraction.VecSize;
 
 		public Tag Tag;
-		public bool IsFundamental => Fraction.Dict.Count == 1 && Fraction.Dict.First().Value == 1;
+		public bool IsFundamental => (Fraction.NumSize == 1) & (Fraction.DenSize == 0);
 		public char InField => Fraction.VecSize > 1 ? 'v' : 'f';
 
 		public void Init()

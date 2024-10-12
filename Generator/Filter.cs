@@ -5,35 +5,35 @@ namespace Metric.Editor.Generator
 {
 	internal static class Filter
 	{
-		internal static T GetUnits<T>(BaseUnits units) where T:ICollection<string>, new()
+		public static bool HasAny(in Fraction frac, BaseUnits units)
 		{
-			T list = new T();
-			if (units.HasFlag(BaseUnits.s)) list.Add("s");
-			if (units.HasFlag(BaseUnits.kg)) list.Add("kg");
-			if (units.HasFlag(BaseUnits.m)) list.Add("m");
-			if (units.HasFlag(BaseUnits.A)) list.Add("A");
-			if (units.HasFlag(BaseUnits.K)) list.Add("K");
-			if (units.HasFlag(BaseUnits.mol)) list.Add("mol");
-			if (units.HasFlag(BaseUnits.cd)) list.Add("cd");
-			if (units.HasFlag(BaseUnits.rad)) list.Add("rad");
-			return list;
+			return (frac.BaseUnits & units) != 0;
+		}
+		public static bool HasOnly(in Fraction frac, BaseUnits units)
+		{
+			return (frac.BaseUnits | units) == units;
 		}
 
-		public static List<Unit> ByBaseUnits(IEnumerable<Unit> list, BaseUnits baseUnits, bool only = false, bool not = false)
+		public static bool Fit(in Fraction frac, Vec vec)
 		{
-			var unitSet = GetUnits<HashSet<string>>(baseUnits);
-			bool Predicate(KeyValuePair<string, int> kv) => not ^ unitSet.Contains(kv.Key);
+			if (vec == Vec.NoVectors & frac.VecSize > 1) return false;
+			if (vec == Vec.OnlyVectors & frac.VecSize == 1) return false;
+			return true;
+		}
+
+		public static List<Unit> ByBaseUnits(IEnumerable<Unit> list, BaseUnits baseUnits)
+		{
 			var res = new List<Unit>();
 			foreach (var unit in list)
 			{
-				if (only ? unit.Fraction.Dict.All(Predicate) : unit.Fraction.Dict.Any(Predicate))
+				if (HasOnly(unit.Fraction, baseUnits))
 				{
 					res.Add(unit);
 				}
 			}
 			return res;
 		}
-        
+
 		public static List<Unit> ByTags(IEnumerable<Unit> list, Tag tags)
 		{
 			var res = new List<Unit>();
@@ -45,6 +45,16 @@ namespace Metric.Editor.Generator
 				}
 			}
 			return res;
+		}
+		
+		public static List<Unit> ByVec(IEnumerable<Unit> list, Vec vec)
+		{
+			return vec switch
+			{
+				Vec.NoVectors => list.Where(u => u.VecSize == 1).ToList(),
+				Vec.OnlyVectors => list.Where(u => u.VecSize > 1).ToList(),
+				_ => list as List<Unit> ?? list.ToList()
+			};
 		}
 
 	}
