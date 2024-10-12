@@ -1,0 +1,184 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e43a4234d811f4c8687fcf221d69b9ac, type: 3}
+  m_Name: UnitGeneratorExample
+  m_EditorClassIdentifier: 
+  NameSpace: Units
+  MathClassName: MathU
+  AddAnalysisIntoComments: 0
+  BasicUnitFilter:
+    Units: -2147483513
+    Tags: -1
+  GenerationBlocks:
+  - name: first, no vec
+    filterByBase: -2147483641
+    filterByTag: 78
+    vecFilter: 2
+    resultFilter:
+      eBase: -1
+      eVec: 2
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: -1
+      nVec: 2
+      nHasComplexityBelow: 4
+      nComplexityBelowMaxInputUnitMinusOffset: 1
+  CustomOperations: []
+  CustomUnits: []
+  CustomUnitPermutations:
+  - Units:
+    - m
+    - s
+    - s
+    - mps
+    - N
+    - kg
+    resultFilter:
+      eBase: -1
+      eVec: 3
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: -1
+      nVec: 3
+      nHasComplexityBelow: 4
+      nComplexityBelowMaxInputUnitMinusOffset: -1
+  GenerationBlocksFinal:
+  - name: to floats
+    filterByBase: -1
+    filterByTag: -1
+    vecFilter: 3
+    resultFilter:
+      eBase: -2147483648
+      eVec: 3
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: 0
+      nVec: 3
+      nHasComplexityBelow: -1
+      nComplexityBelowMaxInputUnitMinusOffset: 0
+  - name: to vectors
+    filterByBase: -1
+    filterByTag: -1
+    vecFilter: 3
+    resultFilter:
+      eBase: -1
+      eVec: 1
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: 0
+      nVec: 3
+      nHasComplexityBelow: -1
+      nComplexityBelowMaxInputUnitMinusOffset: 0
+  UnitEditors:
+  - unit: rad
+    suf: rad
+    description: radian
+    suffixes:
+    - unit: "\u2032"
+      description: arcminute
+      mul: 0.0002908882064123948
+    - unit: "\xB0"
+      description: degree
+      mul: 0.01745329238474369
+    - unit: turn
+      description: turn
+      mul: 6.2831854820251465
+  - unit: kg
+    suf: kg
+    description: kilogram
+    suffixes:
+    - unit: "\u03BCg"
+      description: microgram
+      mul: 0.000000001
+    - unit: mg
+      description: milligram
+      mul: 0.000001
+    - unit: g
+      description: gram
+      mul: 0.001
+    - unit: t
+      description: tonne
+      mul: 1000
+    - unit: kt
+      description: kilotonne
+      mul: 1000000
+  - unit: m
+    suf: m
+    description: metre
+    suffixes:
+    - unit: "\u03BCm"
+      description: micrometre
+      mul: 0.000001
+    - unit: mm
+      description: millimetre
+      mul: 0.001
+    - unit: cm
+      description: centimetre
+      mul: 0.01
+    - unit: km
+      description: kilometre
+      mul: 1000
+  - unit: s
+    suf: s
+    description: second
+    suffixes:
+    - unit: ns
+      description: nanosecond
+      mul: 0.000000001
+    - unit: "\u03BCs"
+      description: microsecond
+      mul: 0.000001
+    - unit: ms
+      description: millisecond
+      mul: 0.001
+    - unit: min
+      description: minute
+      mul: 60
+    - unit: h
+      description: hour
+      mul: 3600
+    - unit: day
+      description: day
+      mul: 86400
+  - unit: mps
+    suf: "m \u2044 s"
+    description: 
+    suffixes:
+    - unit: "mm \u2044 s"
+      description: 
+      mul: 0.001
+    - unit: "km \u2044 s"
+      description: 
+      mul: 1000
+  - unit: mps2
+    suf: "m \u2044 s\xB2"
+    description: 
+    suffixes:
+    - unit: "mm \u2044 s\xB2"
+      description: 
+      mul: 0.001
+    - unit: "km \u2044 s\xB2"
+      description: 
+      mul: 1000
+  - unit: m2
+    suf: "m\xB2"
+    description: 
+    suffixes:
+    - unit: "mm\xB2"
+      description: 
+      mul: 0.000001
+    - unit: "km\xB2"
+      description: 
+      mul: 1000000
+  GenerateButton: 0
+  DryRun: 0
+  SaveInTestDir: 0

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Metric.Editor.Generator
 {
-	[CreateAssetMenu]
+	[CreateAssetMenu(menuName = "Unit Generator", order = 90, fileName = "UnitGenerator")]
 	internal class UnitGeneratorObject : ScriptableObject
 	{
 		public enum OpType
@@ -24,9 +24,8 @@ namespace Metric.Editor.Generator
 			public string B;
 		}
 
-
-		public string NameSpace = "Metric";
-		public string MathClassName = "metric";
+		public string NameSpace = "Units";
+		public string MathClassName = "MathU";
 		public bool AddAnalysisIntoComments;
 
 		[Space(16)] public BasicUnitFilter BasicUnitFilter;
@@ -34,7 +33,6 @@ namespace Metric.Editor.Generator
 		public CustomOperation[] CustomOperations;
 		public CustomUnit[] CustomUnits;
 		public CustomUnitPermutation[] CustomUnitPermutations;
-		public bool generateOperationsForAllUnits;
 		public GenerationBlock[] GenerationBlocksFinal;
 		[Space]
 		public UnitEditorDescriptor[] UnitEditors = UnitEditorDescriptor.GetDefaults();
@@ -190,26 +188,11 @@ namespace Metric.Editor.Generator
 				gen.GenerateUntilHaveChanges(() => gen.GenerateMathOps());
 			}
 
-			if (generateOperationsForAllUnits)
-			{
-				Debug.Log($"Generating only operations");
-
-				bool dropIfDoesntExist(UnitStructGeneratorLvl0 gen,Unit a, Unit b, Fraction frac)
-				{
-					if (frac.ID == null) return false;
-					return !gen.Units.ContainsKey(frac.ID);
-				}
-
-				gen.GenerateCustomOperators(dropIfDoesntExist, Filter.ByBaseUnits(gen.Units.Values, ~BaseUnits.rad));
-			}
-
 			for (var i = 0; i < GenerationBlocksFinal.Length; i++)
 			{
 				Debug.Log($"#####  Executing  Final Block [{i}] '{GenerationBlocksFinal[i].name}'  #####");
 				GenerationBlocksFinal[i].GenerateOperators(gen);
 			}
-
-
 
 			gen.DistributeOperations();
 			return gen;
