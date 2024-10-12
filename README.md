@@ -30,6 +30,6 @@ Bonus unit: rad for more efficien conversion from deg to rad in editor.
 
 ## How to use: 
 1. Create UnitGenerator ScriptableObject in a directory where you want to generate the units code.
-1.5. Alternatively you can Copy Packages/com.ovpavlov.unitgenerator/Editor/UnitGeneratorExample.asset for preconfigured generator example
+    1. Alternatively you can Copy Packages/com.ovpavlov.unitgenerator/Editor/UnitGeneratorExample.asset for preconfigured generator example
 2. Toggle 'Dry Run' and then press 'Generate Button'(which in fact is a Button that looks like a toggle), and check Console to see diagnostics. 
 3. Untoggle 'Dry Run' and then press 'Generate Button' to generate the code 
