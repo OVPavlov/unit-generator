@@ -9,8 +9,9 @@ namespace Metric.Editor.Generator
 	{
 		public string[] Units;
 		public ResultFilter resultFilter = ResultFilter.Default;
+		public DebugGenerated.Mode debugMode;
 
-		public List<List<T>> GetAllCombinations<T>(T[] array, int minLength, int maxLength)
+		private List<List<T>> GetAllCombinations<T>(T[] array, int minLength, int maxLength)
 		{
 			var result = new List<List<T>>();
 
@@ -42,7 +43,7 @@ namespace Metric.Editor.Generator
 			}
 		}
 		
-		public static void Permutate<T>(T[] array, System.Action<T[]> action)
+		private static void Permutate<T>(T[] array, System.Action<T[]> action)
 		{
 			int[] c = new int[array.Length];
 			action(array);
@@ -69,6 +70,7 @@ namespace Metric.Editor.Generator
 		internal void Permutation(UnitStructGenerator gen)
 		{
 			using var _ = new BeforeAndAfter($"Permutation using [{string.Join(", ", Units)}]", gen);
+			using var __ = new DebugGenerated(gen, "\t", debugMode);
 			var units = Units.Select(gen.GetUnitByName).ToArray();
 			var comb = GetAllCombinations(units, units.Length, units.Length);
 			List<(Unit, bool)[]> equations = new List<(Unit, bool)[]>();

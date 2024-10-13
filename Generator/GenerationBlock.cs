@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace Metric.Editor.Generator
 		public Tag filterByTag;
 		public Vec vecFilter;
 		public ResultFilter resultFilter = ResultFilter.Default;
+		public DebugGenerated.Mode debugMode;
 
 		internal void GenerateOperators(UnitStructGenerator gen)
 		{
@@ -27,10 +29,10 @@ namespace Metric.Editor.Generator
 			units = Filter.ByVec(units, vecFilter);
 
 			Debug.Log($"\tFiltered {units.Count} / {gen.Units.Count} units");
-			using (var _ = new BeforeAndAfter("\tGenerating", gen, units))
-			{
-				gen.GenerateOperators(units, resultFilter);
-			}
+			using var _ = new BeforeAndAfter("\tGenerating", gen, units);
+			using var __ = new DebugGenerated(gen, "\t", debugMode);
+				
+			gen.GenerateCustomOperators(resultFilter.Drop, units);
 		}
 		
 	}

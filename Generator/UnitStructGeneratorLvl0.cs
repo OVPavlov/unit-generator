@@ -116,21 +116,36 @@ namespace Metric.Editor.Generator
             return _structNames.GetValueOrDefault(name);
         }
 
-
-        public void GenerateMathOps()
+        public void GenerateMathOps(bool upperCase)
         {
-            foreach (var unit in Units.Values.ToList())
-            {
+            string sqrtName = upperCase ? "Sqrt" : "sqrt";
+            string absName = upperCase ? "Abs" : "abs";
 
+            var units = Units.Values.ToList();
+            foreach (var unit in units)
+            {
                 var allPowersMulOf2 = unit.Fraction.All((u, p) => (p & 1) == 0);
-                if (allPowersMulOf2 && unit.Fraction.HasUnit)
+                if (!allPowersMulOf2 || !unit.Fraction.HasUnit) continue;
+
+                var frac = new Fraction(unit.VecSize, unit.Fraction, (u, p) => p / 2);
+                var result = ToUnit(frac);
+
+                var varName = unit.VarName ?? "x";
+                if (result == null) continue;
+                MathOps.Add($"{result.Name} {sqrtName}({unit.Name} {varName}) => new {result.Name}(System.MathF.Sqrt({varName}.{unit.InField}));");
+            }
+
+            foreach (var unit in units)
+            {
+                if (unit.Fraction.m != 1 | unit.Fraction.s > 0 || !Filter.HasOnly(unit.Fraction, BaseUnits.m | BaseUnits.s| BaseUnits.kg)) continue;
+                var varName = unit.VarName ?? "x";
+                if (unit.Fraction.VecSize > 1)
                 {
-                    var frac  = new Fraction(unit.VecSize, unit.Fraction, (u, p) => p / 2);
-                    var result = ToUnit(frac);
-                    
-                    var varName = unit.VarName ?? "x";
-                    if(result == null) continue;
-                    MathOps.Add($"{result.Name} sqrt({unit.Name} {varName}) => new {result.Name}(System.MathF.Sqrt({varName}.{unit.InField}));");
+                    MathOps.Add($"{unit.Name} {absName}({unit.Name} {varName}) => new {unit.Name}(math.abs({varName}.v));");
+                }
+                else
+                {
+                    MathOps.Add($"{unit.Name} {absName}({unit.Name} {varName}) => new {unit.Name}({varName}.f < 0f ? -{varName}.f : {varName}.f);");
                 }
             }
         }

@@ -26,6 +26,7 @@ namespace Metric.Editor.Generator
 
 		public string NameSpace = "Units";
 		public string MathClassName = "MathU";
+		public bool MathClassFunctionsStartWithUpperCase;
 		public bool AddAnalysisIntoComments;
 
 		[Space(16)] public BasicUnitFilter BasicUnitFilter;
@@ -64,6 +65,12 @@ namespace Metric.Editor.Generator
 			string nameSpace = SaveInTestDir ? "___units_test_run" : NameSpace;
 			Directory.CreateDirectory(unitsDir);
 			Directory.CreateDirectory(editorDir);
+			
+						
+			var gen = GenerateUnits();
+			var scalars = gen.GetUnits(u => u.VecSize == 1);
+			var vectors = gen.GetUnits(u => u.VecSize > 1);
+
 
 			string disableWarnings = @"// ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
@@ -72,24 +79,15 @@ namespace Metric.Editor.Generator
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable CS0660, CS0661
 ";
-
-
-
-			var gen = GenerateUnits();
-			var scalars = gen.GetUnits(u => u.VecSize == 1);
-			var vectors = gen.GetUnits(u => u.VecSize > 1);
-
-
 			void WriteFile(IEnumerable<Unit> units, string name)
 			{
 				var sb = new StringBuilder($"using Unity.Mathematics;\n{disableWarnings}");
 				gen.GenerateFile(sb, nameSpace, units);
 				if (!DryRun) File.WriteAllText(Path.Combine(unitsDir, $"{name}.cs"), sb.ToString());
 			}
-
 			void WriteMathFile(UnitStructGenerator gen, string name)
 			{
-				var sb = new StringBuilder(disableWarnings);
+				var sb = new StringBuilder($"using Unity.Mathematics;\n{disableWarnings}");
 				gen.GenerateMathFile(sb, nameSpace, MathClassName);
 				if (!DryRun) File.WriteAllText(Path.Combine(unitsDir, $"{name}.cs"), sb.ToString());
 			}
@@ -102,8 +100,7 @@ namespace Metric.Editor.Generator
 			WriteFile(scalars.Where(u => u.Tag == Tag.DerivedFromSpecial), "derived_from_special");
 			WriteFile(scalars.Where(u => u.Tag == Tag.AutoDerived), "auto_derived");
 			WriteFile(vectors, "vectors");
-
-			WriteMathFile(gen, "metric");
+			WriteMathFile(gen, "math");
 
 			GenerateAssemblyDefinition(unitsDir, $"{nameSpace}Assembly");
 			
@@ -159,7 +156,6 @@ namespace Metric.Editor.Generator
 		{
 			var gen = new UnitStructGenerator();
 
-
 			BasicUnitFilter.FilterAndAdd(gen, UnitCollection.SiBaseUnits());
 			BasicUnitFilter.FilterAndAdd(gen, UnitCollection.SiDerivedUnits());
 			BasicUnitFilter.FilterAndAdd(gen, UnitCollection.CoherentDerivedUnits());
@@ -173,19 +169,17 @@ namespace Metric.Editor.Generator
 				Debug.Log($"#####  Executing Block [{i}] '{GenerationBlocks[i].name}' #####");
 				GenerationBlocks[i].GenerateOperators(gen);
 			}
-
-			
-			AddCustomOps(gen);
 			
 			foreach (var permutation in CustomUnitPermutations)
 			{
 				permutation.Permutation(gen);
 			}
 
+			AddCustomOps(gen);
 			
 			using (var _ = new BeforeAndAfter("Generating MathOps all", gen))
 			{
-				gen.GenerateUntilHaveChanges(() => gen.GenerateMathOps());
+				gen.GenerateUntilHaveChanges(() => gen.GenerateMathOps(MathClassFunctionsStartWithUpperCase));
 			}
 
 			for (var i = 0; i < GenerationBlocksFinal.Length; i++)
@@ -210,13 +204,31 @@ namespace Metric.Editor.Generator
 				// Generate inverse of base units
 				foreach (var unit in gen.GetUnits(Tag.Base))
 				{
-					if (!Filter.HasOnly(unit.Fraction, BaseUnits.SI) || !unit.IsFundamental || unit.VecSize > 1) continue;
+					if (!Filter.HasOnly(unit.Fraction, BaseUnits.SI) || !unit.IsFundamental ||
+					    unit.VecSize > 1) continue;
 					var frac = new Fraction(1, unit.Fraction, (_, i) => -i);
 					if (gen.Units.ContainsKey(frac.ID)) continue;
 					gen.AddUnit(new() { Tag = Tag.DerivedFromSpecial, Fraction = frac });
 					gen.AddOp(null, '/', unit, null);
 				}
-				
+
+
+				bool DropIfNotExist(UnitStructGeneratorLvl0 gen, Unit a, Unit b, Fraction frac)
+				{
+					return !gen.Units.ContainsKey(frac.ID); // gonna create new one 
+				}
+
+				foreach (var unit in gen.Units.Values.ToList())
+				{
+					for (int i = 1; i < 4; i++)
+					{
+						var flUnit = UnitStructGeneratorLvl0.Float[i];
+						gen.AddOp(unit, '/', flUnit, DropIfNotExist);
+						gen.AddOp(flUnit, '/', unit, DropIfNotExist);
+						gen.AddOp(unit, '*', flUnit, DropIfNotExist);
+					}
+				}
+
 				foreach (var unit in gen.Units.Values.ToList())
 				{
 					gen.AddOp(null, '*', unit, null);

@@ -327,14 +327,6 @@ namespace Metric.Editor.Generator
 				new()
 				{
 					Tag = Tag.DerivedFromSpecial,
-					Name = "radps2",
-					Summary = "Radian per second squared: angular acceleration",
-					VarName = "angularAcceleration",
-					Fraction = new Fraction(1) { { "s", -2 } }
-				},
-				new()
-				{
-					Tag = Tag.DerivedFromSpecial,
 					Name = "Wpm2",
 					Summary = "Watt per square metre: heat flux density, irradiance",
 					VarName = "heatFluxDensity",

@@ -32,7 +32,8 @@ namespace Metric.Editor.Generator
      
 				for (int i = 0; i < unit.VecSize; i++)
 				{
-					sb.AppendLine($"\t\tpublic {scalarName} {components[i]} => new(v.{components[i]});");
+					//sb.AppendLine($"\t\tpublic {scalarName} {components[i]} => new(v.{components[i]});");
+					sb.AppendLine($"\t\tpublic {scalarName} {components[i]} {{ get => new(v.{components[i]}); set => v.{components[i]} = value.f; }}");
 				}
 
 				string constrSign = $"{scalarName} _x";
@@ -180,12 +181,6 @@ namespace Metric.Editor.Generator
 				host.Ops.Add(op);
 			}
 			Ops.Clear();
-		}
-
-
-		public void GenerateCustomOperators(System.Func<UnitStructGeneratorLvl0, Unit, Unit, Fraction, bool>  drop)
-		{
-			GenerateCustomOperators(drop, Units.Values.ToList());
 		}
 
 		public void GenerateCustomOperators(System.Func<UnitStructGeneratorLvl0, Unit, Unit, Fraction, bool> drop, IEnumerable<Unit> units)
