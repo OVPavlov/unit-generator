@@ -37,7 +37,7 @@ namespace Metric.Editor.Generator
 
 			string PrintUnit(Unit unit)
 			{
-				return pretty ? unit.Fraction.GetDescription() : unit.Name;
+				return pretty ? unit.Fraction.GetFractionalNotation() : unit.Name;
 			}
 			var sb = new System.Text.StringBuilder(100);
 			sb.Append($"{_name} ");

@@ -33,7 +33,7 @@ namespace Metric.Editor.Generator
 			var list = suffixes.ToList();
 			list.Add(new SuffixDescriptor()
 			{
-				unit = unit,
+				unit = suf,
 				description = description,
 				mul = 1
 			});

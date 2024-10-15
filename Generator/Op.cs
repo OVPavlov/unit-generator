@@ -47,9 +47,9 @@ namespace Metric.Editor.Generator
 			string comment = "";
 			if (AddAnalysisIntoComments & !basic)
 			{
-				string aDesc = A.Fraction.GetDescription();
-				string bDesc = B.Fraction.GetDescription();
-				string resDesc = Res.Fraction.GetDescription();
+				string aDesc = A.Fraction.GetFractionalNotation();
+				string bDesc = B.Fraction.GetFractionalNotation();
+				string resDesc = Res.Fraction.GetFractionalNotation();
 				comment = $"// ({aDesc}){(Multiply ? '*' : '/')}({bDesc}) = {resDesc}";
 			}
 

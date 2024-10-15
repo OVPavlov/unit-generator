@@ -227,7 +227,7 @@ namespace Metric.Editor.Generator
 		}
 
 
-		private static void DescriptionProcessor(string u, int p)
+		private static void FractionalNotationProcessor(string u, int p)
 		{
 			Buffer.Append(u);
 			if (p > 1)
@@ -237,14 +237,14 @@ namespace Metric.Editor.Generator
 			Buffer.Append('·');
 		}
 
-		public string GetDescription()
+		public string GetFractionalNotation()
 		{
 			if (!HasUnit) return string.Empty;
 			Buffer.Clear();
 
 			if (NumSize > 0)
 			{
-				ProcessString(true, DescriptionProcessor);
+				ProcessString(true, FractionalNotationProcessor);
 				Buffer.Remove(Buffer.Length - 1, 1);
 			}
 			else
@@ -255,9 +255,30 @@ namespace Metric.Editor.Generator
 			if (DenSize > 0)
 			{
 				Buffer.Append('/');
-				ProcessString(false, DescriptionProcessor);
+				ProcessString(false, FractionalNotationProcessor);
 				Buffer.Remove(Buffer.Length - 1, 1);
 			}
+
+			var result = Buffer.ToString();
+			Buffer.Clear();
+			return result;
+		}
+		
+		private static void ExponentialNotationProcessor(string u, int p)
+		{
+			Buffer.Append(u);
+			Buffer.Append(superscripts[p]);
+			Buffer.Append('·');
+		}
+
+		public string GetExponentialNotation()
+		{
+			if (!HasUnit) return string.Empty;
+			Buffer.Clear();
+			
+			ProcessString(true, ExponentialNotationProcessor);
+			ProcessString(false, ExponentialNotationProcessor);
+			Buffer.Remove(Buffer.Length - 1, 1);
 
 			var result = Buffer.ToString();
 			Buffer.Clear();

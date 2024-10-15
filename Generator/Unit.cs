@@ -125,7 +125,7 @@ namespace Metric.Editor.Generator
 
 			if (Summary == null)
 			{
-				Summary = Fraction.GetDescription();
+				Summary = Fraction.GetFractionalNotation();
 			}
 		}
 	}

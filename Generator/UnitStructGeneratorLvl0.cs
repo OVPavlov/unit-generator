@@ -66,7 +66,7 @@ namespace Metric.Editor.Generator
             resUnit = new Unit
             {
                 Name = fraction.GetName(),
-                Summary = fraction.GetDescription(),
+                Summary = fraction.GetFractionalNotation(),
                 Fraction = fraction,
                 Tag = Tag.AutoDerived,
             };
