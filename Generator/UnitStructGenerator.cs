@@ -1,12 +1,62 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using System.Text.RegularExpressions;
 
 namespace Metric.Editor.Generator
 {
 	internal class UnitStructGenerator : UnitStructGeneratorLvl1
 	{
+		private static readonly Regex IsProperty = new Regex(@"\w+\s+\w+\s*({|=>)", RegexOptions.Compiled);
+		private static readonly Regex PropertyBody = new Regex(@"(\w+\s+\w+)\s*(=>)\s*([^;]+;)|(\w+\s+\w+)\s*{\s*([^;]+;)\s*([^;]+;)?\s*}", RegexOptions.Compiled);
 		
+		public bool AggressiveInlining;
+		const string AggressiveInliningAttr = "[MethodImpl(MethodImplOptions.AggressiveInlining)]";
+		
+		
+		
+		
+
+
+		public static string AddMethodImplAttribute(string prop)
+		{
+			prop = prop.Trim();
+			var match = PropertyBody.Match(prop);
+			if (!match.Success) return prop;
+			var sig = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[4].Value;
+			var isExpr = match.Groups[2].Success;
+			var body = isExpr ? match.Groups[3].Value : match.Groups[5].Value;
+			var set = match.Groups[6].Value;
+
+			return isExpr
+				? $"{sig}{{ {AggressiveInliningAttr} get => {body}}}"
+				: $"{sig}{{ {AggressiveInliningAttr} {body} {(set != "" ? $"{AggressiveInliningAttr} {set}" : "")}}}";
+		}
+		
+		private void AppendPublic(StringBuilder sb, string line)
+		{
+			line = line.Trim();
+			if (!AggressiveInlining)
+			{
+				sb.Append("\t\tpublic ");
+				sb.AppendLine(line);
+			}
+			else
+			{
+				bool isProperty = IsProperty.Match(line).Success;
+				if (isProperty)
+				{
+					sb.Append("\t\tpublic ");
+					sb.AppendLine(AddMethodImplAttribute(line));
+				}
+				else
+				{
+					sb.AppendLine("\t\t[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+					sb.Append("\t\tpublic ");
+					sb.AppendLine(line);
+				}
+			}
+		}
 		private void GenerateStruct(StringBuilder sb, Unit unit)
 		{
 			if (!unit.Fraction.HasUnit) return;
@@ -32,7 +82,7 @@ namespace Metric.Editor.Generator
 			{
 				for (int i = 0; i < unit.VecSize; i++)
 				{
-					sb.AppendLine($"\t\tpublic {scalarName} {components[i]} {{ get => new(v.{components[i]}); set => v.{components[i]} = value.f; }}");
+					AppendPublic(sb, $"{scalarName} {components[i]} {{ get => new(v.{components[i]}); set => v.{components[i]} = value.f; }}");
 				}
 
 				string constrSign = $"{scalarName} _x";
@@ -62,59 +112,59 @@ namespace Metric.Editor.Generator
 				sb.AppendLine("#if UNITY_EDITOR");
 				sb.AppendLine("\t\tpublic int EditorData;");
 				foreach (var constructor in constructors)
-					sb.AppendLine($"\t\tpublic {constructor} EditorData = 0; }}");
+					AppendPublic(sb, $"{constructor} EditorData = 0; }}");
                 
 				sb.AppendLine("#else");
 				foreach (var constructor in constructors)
-					sb.AppendLine($"\t\tpublic {constructor} }}");
+					AppendPublic(sb, $"{constructor} }}");
 				sb.AppendLine("#endif");
 			}
 			else
 			{
 				foreach (var constructor in constructors)
-					sb.AppendLine($"\t\tpublic {constructor} }}");
+					AppendPublic(sb, $"{constructor} }}");
 			}
 
 			if (unit.AddFields.Count > 0) sb.AppendLine();
 			foreach (var conversion in unit.AddFields)
 			{
-				sb.AppendLine($"\t\tpublic {conversion}");
+				AppendPublic(sb, $"{conversion}");
 			}
 
 			if (unit.Ops.Count > 0) sb.AppendLine();
 			foreach (var unitOp in unit.Ops)
 			{
+				if (AggressiveInlining) sb.AppendLine($"\t\t{AggressiveInliningAttr}");
 				unitOp.Add(sb);
 			}
 
 			sb.AppendLine();
 			
-			sb.AppendLine($"\t\tpublic static {unit.Name} operator -({unit.Name} a) => new(-a.{valName});");
-			sb.AppendLine($"\t\tpublic static {unit.Name} operator +({unit.Name} a, {unit.Name} b) => new(a.{valName} + b.{valName});");
-			sb.AppendLine($"\t\tpublic static {unit.Name} operator -({unit.Name} a, {unit.Name} b) => new(a.{valName} - b.{valName});");
+			AppendPublic(sb, $"static {unit.Name} operator -({unit.Name} a) => new(-a.{valName});");
+			AppendPublic(sb, $"static {unit.Name} operator +({unit.Name} a, {unit.Name} b) => new(a.{valName} + b.{valName});");
+			AppendPublic(sb, $"static {unit.Name} operator -({unit.Name} a, {unit.Name} b) => new(a.{valName} - b.{valName});");
 			if (unit.VecSize == 1)
 			{
-				sb.AppendLine($"\t\tpublic static {unit.Name} operator +(float a, {unit.Name} b) => new(a + b.{valName});");
-				sb.AppendLine($"\t\tpublic static {unit.Name} operator -(float a, {unit.Name} b) => new(a - b.{valName});");
-				sb.AppendLine($"\t\tpublic static {unit.Name} operator +({unit.Name} a, float b) => new(a.{valName} + b);");
-				sb.AppendLine($"\t\tpublic static {unit.Name} operator -({unit.Name} a, float b) => new(a.{valName} - b);");
+				AppendPublic(sb, $"static {unit.Name} operator +(float a, {unit.Name} b) => new(a + b.{valName});");
+				AppendPublic(sb, $"static {unit.Name} operator -(float a, {unit.Name} b) => new(a - b.{valName});");
+				AppendPublic(sb, $"static {unit.Name} operator +({unit.Name} a, float b) => new(a.{valName} + b);");
+				AppendPublic(sb, $"static {unit.Name} operator -({unit.Name} a, float b) => new(a.{valName} - b);");
                 
-				sb.AppendLine($"\t\tpublic static bool operator ==({unit.Name} a, {unit.Name} b) => a.{valName} == b.{valName};");
-				sb.AppendLine($"\t\tpublic static bool operator !=({unit.Name} a, {unit.Name} b) => a.{valName} != b.{valName};");
-				sb.AppendLine($"\t\tpublic static bool operator <({unit.Name} a, {unit.Name} b) => a.{valName} < b.{valName};");
-				sb.AppendLine($"\t\tpublic static bool operator >({unit.Name} a, {unit.Name} b) => a.{valName} > b.{valName};");
-				sb.AppendLine($"\t\tpublic static bool operator <=({unit.Name} a, {unit.Name} b) => a.{valName} <= b.{valName};");
-				sb.AppendLine($"\t\tpublic static bool operator >=({unit.Name} a, {unit.Name} b) => a.{valName} >= b.{valName};");
+				AppendPublic(sb, $"static bool operator ==({unit.Name} a, {unit.Name} b) => a.{valName} == b.{valName};");
+				AppendPublic(sb, $"static bool operator !=({unit.Name} a, {unit.Name} b) => a.{valName} != b.{valName};");
+				AppendPublic(sb, $"static bool operator <({unit.Name} a, {unit.Name} b) => a.{valName} < b.{valName};");
+				AppendPublic(sb, $"static bool operator >({unit.Name} a, {unit.Name} b) => a.{valName} > b.{valName};");
+				AppendPublic(sb, $"static bool operator <=({unit.Name} a, {unit.Name} b) => a.{valName} <= b.{valName};");
+				AppendPublic(sb, $"static bool operator >=({unit.Name} a, {unit.Name} b) => a.{valName} >= b.{valName};");
 			}
-			sb.AppendLine($"\t\tpublic static explicit operator {unit.Name}({type} x) => new(x);");
-			sb.AppendLine($"\t\tpublic static explicit operator {type}({unit.Name} x) => x.{valName};");
+			AppendPublic(sb, $"static explicit operator {unit.Name}({type} x) => new(x);");
+			AppendPublic(sb, $"static explicit operator {type}({unit.Name} x) => x.{valName};");
 
 			var toStrForm = "ToString(format, formatProvider)";
 			if (unit.VecSize == 1)
 			{
-				sb.AppendLine($"\t\tpublic override string ToString() => string.Format(\"{{0}} {notation}\", {valName});");
-				sb.AppendLine(
-					$"\t\tpublic string ToString(string format, System.IFormatProvider formatProvider) => string.Format(\"{{0}} {notation}\", {valName}.{toStrForm});");
+				AppendPublic(sb, $"override string ToString() => string.Format(\"{{0}} {notation}\", {valName});");
+				AppendPublic(sb, $"string ToString(string format, System.IFormatProvider formatProvider) => string.Format(\"{{0}} {notation}\", {valName}.{toStrForm});");
 			}
 			else
 			{
@@ -127,8 +177,8 @@ namespace Metric.Editor.Generator
 					componentsSimple += $", {valName}.{components[i]}";
 					componentsFormat += $", {valName}.{components[i]}.{toStrForm}";
 				}
-				sb.AppendLine($"\t\tpublic override string ToString() => string.Format(\"({formatNums}) {notation}\", {componentsSimple});");
-				sb.AppendLine($"\t\tpublic string ToString(string format, System.IFormatProvider formatProvider) => string.Format(\"({formatNums}) {notation}\", {componentsFormat});");
+				AppendPublic(sb, $"override string ToString() => string.Format(\"({formatNums}) {notation}\", {componentsSimple});");
+				AppendPublic(sb, $"string ToString(string format, System.IFormatProvider formatProvider) => string.Format(\"({formatNums}) {notation}\", {componentsFormat});");
 			}
 
 			sb.AppendLine("\t}");
@@ -136,6 +186,7 @@ namespace Metric.Editor.Generator
 
 		public void GenerateFile(StringBuilder sb, string nameSpace, IEnumerable<Unit> units)
 		{
+			if (AggressiveInlining) sb.AppendLine("using System.Runtime.CompilerServices;");
 			sb.AppendLine($"namespace {nameSpace}");
 			sb.AppendLine("{");
 			Dictionary<string, Unit> checkNames = new Dictionary<string, Unit>();
@@ -155,13 +206,14 @@ namespace Metric.Editor.Generator
         
 		public void GenerateMathFile(StringBuilder sb, string nameSpace, string className)
 		{
+			if (AggressiveInlining) sb.AppendLine("using System.Runtime.CompilerServices;");
 			sb.AppendLine($"namespace {nameSpace}");
 			sb.AppendLine("{");
 			sb.AppendLine($"\tpublic static class {className}");
 			sb.AppendLine("\t{");
 			foreach (var op in MathOps)
 			{
-				sb.AppendLine($"\t\tpublic static {op}");
+				AppendPublic(sb, $"static {op}");
 			}
 			sb.AppendLine("\t}");
 			sb.AppendLine("}");

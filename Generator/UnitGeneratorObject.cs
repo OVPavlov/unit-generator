@@ -28,6 +28,7 @@ namespace Metric.Editor.Generator
 		public string MathClassName = "MathU";
 		public bool MathClassFunctionsStartWithUpperCase;
 		public bool AddAnalysisIntoComments;
+		public bool AggressiveInlining;
 
 		[Space(16)] public BasicUnitFilter BasicUnitFilter;
 		public GenerationBlock[] GenerationBlocks;
@@ -55,7 +56,6 @@ namespace Metric.Editor.Generator
 			Op.AddAnalysisIntoComments = AddAnalysisIntoComments;
 			var so = CreateInstance<UnitGeneratorObject>();
 			string soPath = AssetDatabase.GetAssetPath(this);
-
 			DestroyImmediate(so);
 
 			string directory = Path.GetDirectoryName(soPath);
@@ -68,6 +68,7 @@ namespace Metric.Editor.Generator
 			
 						
 			var gen = GenerateUnits();
+			gen.AggressiveInlining = AggressiveInlining;
 			var scalars = gen.GetUnits(u => u.VecSize == 1);
 			var vectors = gen.GetUnits(u => u.VecSize > 1);
 
