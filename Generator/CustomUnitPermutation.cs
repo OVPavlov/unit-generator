@@ -7,6 +7,7 @@ namespace Metric.Editor.Generator
 	[System.Serializable]
 	internal class CustomUnitPermutation
 	{
+		[Tooltip("split units by a sumbol:  '|', ',', '/', '*'")]
 		public string[] Units;
 		public ResultFilter resultFilter = ResultFilter.Default;
 		public DebugGenerated.Mode debugMode;
@@ -69,54 +70,73 @@ namespace Metric.Editor.Generator
 		
 		internal void Permutation(UnitStructGenerator gen)
 		{
-			using var _ = new BeforeAndAfter($"Permutation using [{string.Join(", ", Units)}]", gen);
-			using var __ = new DebugGenerated(gen, "\t", debugMode);
-			var units = Units.Select(gen.GetUnitByName).ToArray();
-			var comb = GetAllCombinations(units, units.Length, units.Length);
-			List<(Unit, bool)[]> equations = new List<(Unit, bool)[]>();
-			foreach (var c in comb)
+			foreach (string unitCollection in Units)
 			{
-				int totalCombinations = 1 << c.Count; // 2^n combinations
+				var unitNames = unitCollection.Split(' ', '|', ',', '/', '*')
+					.Select(u => u.Trim()).Where(u => !string.IsNullOrWhiteSpace(u))
+					.ToArray();
 
-				for (int i = 0; i < totalCombinations; i++)
+
+
+				using var _  = new BeforeAndAfter($"Permutation using [{string.Join(", ", unitNames)}]", gen);
+				using var __ = new DebugGenerated(gen, "\t", debugMode);
+
+				var                  units     = unitNames.Select(gen.GetUnitByName).ToArray();
+				var                  comb      = GetAllCombinations(units, units.Length, units.Length);
+				List<(Unit, bool)[]> equations = new List<(Unit, bool)[]>();
+				foreach (var c in comb)
 				{
-					int sum = 0;
-					var eq = new (Unit, bool)[c.Count];
-					for (int j = 0; j < c.Count; j++)
+					int totalCombinations = 1 << c.Count; // 2^n combinations
+
+					for (int i = 0; i < totalCombinations; i++)
 					{
-						bool multiply = (i & (1 << j)) != 0;
-						eq[j] = (c[j], multiply);
+						int sum = 0;
+						var eq  = new (Unit, bool)[c.Count];
+						for (int j = 0; j < c.Count; j++)
+						{
+							bool multiply = (i & (1 << j)) != 0;
+							eq[j] = (c[j], multiply);
+						}
+
+						equations.Add(eq);
 					}
-
-					equations.Add(eq);
 				}
-			}
-			
-			void Action((Unit, bool)[] permutation)
-			{
-				Unit previous = permutation[0].Item1;
-				for (int i = 1; i < permutation.Length; i++)
+
+
+				void AddUnitsLoop((Unit, bool)[] permutation, bool swap)
 				{
-					var b = permutation[i].Item1;
-					var multiply = permutation[i].Item2;
+					Unit previous = permutation[0].Item1;
+					for (int i = 1; i < permutation.Length; i++)
+					{
+						var b            = permutation[i].Item1;
+						var multiply     = permutation[i].Item2;
+						var a            = previous;
+						if (swap) (a, b) = (b, a);
 
-					var a = previous;
+						if (a == null) a = UnitStructGeneratorLvl0.Float[1];
+						if (b == null) continue;
+						if ((a.VecSize != b.VecSize) & (a.VecSize != 1) & (b.VecSize != 1)) continue;
+						if (!a.Fraction.HasUnit & !b.Fraction.HasUnit) continue;
 
-					if (a == null) a = UnitStructGeneratorLvl0.Float[1];
-					if ((a.VecSize != b.VecSize) & (a.VecSize != 1) & (b.VecSize != 1)) continue;
-					if (!a.Fraction.HasUnit & !b.Fraction.HasUnit) continue;
+						var frac = new Fraction(a.Fraction, multiply, b.Fraction);
+						if (resultFilter.Drop(gen, a, b, frac)) continue;
 
-					var frac = new Fraction(a.Fraction, multiply, b.Fraction);
-					if (resultFilter.Drop(gen, a, b, frac)) continue;
-					
-					Unit resUnit = gen.ToUnit(frac);
-					gen.Ops.Add(new Op(resUnit, a, multiply, b));
-					previous = resUnit;
+						Unit resUnit = gen.ToUnit(frac);
+						gen.Ops.Add(new Op(resUnit, a, multiply, b));
+						previous = resUnit;
+					}
 				}
-			}
-			foreach (var equation in equations)
-			{
-				Permutate(equation, Action);
+
+				void Action((Unit, bool)[] permutation)
+				{
+					AddUnitsLoop(permutation, false);
+					AddUnitsLoop(permutation, true);
+				}
+
+				foreach (var equation in equations)
+				{
+					Permutate(equation, Action);
+				}
 			}
 		}
 	}

@@ -57,7 +57,11 @@ namespace Metric.Editor.Generator
 					Name = "K",
 					Summary = "Kelvin",
 					VarName = "thermodynamic_temperature",
-					Fraction = new Fraction(1) { { "K", 1 } }
+					Fraction = new Fraction(1) { { "K", 1 } },
+					AddFields = new List<string>
+					{
+						"static K fromC(float celsius) => new(celsius + 273.15f);",
+					},
 				},
 				new()
 				{
@@ -104,6 +108,10 @@ namespace Metric.Editor.Generator
 					Name = "Pa",
 					Summary = "Pascal: pressure, stress",
 					VarName = "pressure",
+					AddFields = new List<string>
+					{
+						"static Pa fromMPa(float megapascal) => new(megapascal * 1e-6f);",
+					},
 					Fraction = new Fraction(1) { { "kg", 1 }, { "m", -1 }, { "s", -2 } }
 				},
 				new()
@@ -222,28 +230,40 @@ namespace Metric.Editor.Generator
 					Tag = Tag.Coherent,
 					Summary = "area: m²",
 					VarName = "area",
-					Fraction = new Fraction(1) { { "m", 2 } }
+					Fraction = new Fraction(1) { { "m", 2 } },
+					AddFields = new List<string>
+					{
+						"static m2 fromCm(float cm2) => new(cm2 * 1e-4f);",
+					},
 				},
 				new()
 				{
 					Tag = Tag.Coherent,
 					Summary = "volume: m³",
 					VarName = "volume",
-					Fraction = new Fraction(1) { { "m", 3 } }
+					Fraction = new Fraction(1) { { "m", 3 } },
+					AddFields = new List<string>
+					{
+						"static m3 fromCm(float cm3) => new(cm3 * 1e-6f);",
+					},
 				},
 				new()
 				{
 					Tag = Tag.Coherent,
 					Summary = "speed: m/s",
 					VarName = "speed",
-					Fraction = new Fraction(1) { { "m", 1 }, { "s", -1 } }
+					Fraction = new Fraction(1) { { "m", 1 }, { "s", -1 } },
+					AddFields = new List<string>
+					{
+						"static mps fromKmh(float kmh) => new(kmh * (1000f / (60f * 60f)));",
+					},
 				},
 				new()
 				{
 					Tag = Tag.Coherent,
 					Summary = "acceleration: m/s²",
 					VarName = "accel",
-					Fraction = new Fraction(1) { { "m", 1 }, { "s", -2 } }
+					Fraction = new Fraction(1) { { "m", 1 }, { "s", -2 } },
 				},
 				new()
 				{
@@ -461,7 +481,8 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"m length => (m)math.length(v);",
-						"m2 sqrLength => (m2)math.lengthsq(v);"
+						"m2 sqrLength => (m2)math.lengthsq(v);",
+						"(float3 unitVector, m2 sqrLength) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new m2(dot));}"
 					}
 				},
 				new()
@@ -474,7 +495,8 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"mps speed => (mps)math.length(v);",
-						"m2ps2 sqrSpeed => new (math.lengthsq(v));"
+						"m2ps2 sqrSpeed => new (math.lengthsq(v));",
+						"(float3 unitVector, m2ps2 sqrSpeed) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new m2ps2(dot));}"
 					}
 				},
 				new()
@@ -487,6 +509,7 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"mps2 acceleration => (mps2)math.length(v);",
+						"(float3 unitVector, mps2 acceleration) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new mps2(math.sqrt(dot)));}"
 					}
 				},
 				new()
@@ -495,7 +518,25 @@ namespace Metric.Editor.Generator
 					Name = "force3",
 					Summary = "Newton: force",
 					VarName = "force",
-					Fraction = new Fraction(3) { { "kg", 1 }, { "m", 1 }, { "s", -2 } }
+					Fraction = new Fraction(3) { { "kg", 1 }, { "m", 1 }, { "s", -2 } },
+					AddFields =
+					{
+						"N force => (N)math.length(v);",
+						"(float3 unitVector, N force) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new N(math.sqrt(dot)));}",
+					}
+				},
+				new()
+				{
+					Tag = Tag.Vector,
+					Name = "momentum3",
+					Summary = "momentum: kg⋅m/s",
+					VarName = "momentum",
+					Fraction = new Fraction(3) { { "kg", 1 }, { "m", 1 }, { "s", -1 } },
+					AddFields =
+					{
+						"kgmps momentum => (kgmps)math.length(v);",
+						"(float3 unitVector, kgmps momentum) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new kgmps(math.sqrt(dot)));}"
+					}
 				},
 
 				new()
@@ -508,7 +549,8 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"m length => (m)math.length(v);",
-						"m2 sqrLength => (m2)math.lengthsq(v);"
+						"m2 sqrLength => (m2)math.lengthsq(v);",
+						"(float2 unitVector, m2 sqrLength) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new m2(dot));}",
 					}
 				},
 				new()
@@ -521,7 +563,9 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"mps speed => (mps)math.length(v);",
-						"m2ps2 sqrSpeed => new (math.lengthsq(v));"
+						"m2ps2 sqrSpeed => new (math.lengthsq(v));",
+						"(float2 unitVector, m2ps2 sqrSpeed) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new m2ps2(dot));}",
+
 					}
 				},
 				new()
@@ -534,6 +578,7 @@ namespace Metric.Editor.Generator
 					AddFields =
 					{
 						"mps2 acceleration => (mps2)math.length(v);",
+						"(float2 unitVector, mps2 acceleration) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new mps2(math.sqrt(dot)));}"
 					}
 				},
 				new()
@@ -542,7 +587,27 @@ namespace Metric.Editor.Generator
 					Name = "force2",
 					Summary = "Newton: force",
 					VarName = "force",
-					Fraction = new Fraction(2) { { "kg", 1 }, { "m", 1 }, { "s", -2 } }
+					Fraction = new Fraction(2) { { "kg", 1 }, { "m", 1 }, { "s", -2 } },
+					AddFields =
+					{
+						"N force => (N)math.length(v);",
+						"(float2 unitVector, N force) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new N(math.sqrt(dot)));}",
+
+					}
+				},
+				new()
+				{
+					Tag = Tag.Vector,
+					Name = "momentum2",
+					Summary = "momentum: kg⋅m/s",
+					VarName = "momentum",
+					Fraction = new Fraction(2) { { "kg", 1 }, { "m", 1 }, { "s", -1 } },
+					AddFields =
+					{
+						"kgmps momentum => (kgmps)math.length(v);",
+						"(float2 unitVector, kgmps momentum) Decompose() { var dot = math.dot(v, v); return (math.rsqrt(dot) * v, new kgmps(math.sqrt(dot)));}"
+
+					}
 				},
 			};
 		}

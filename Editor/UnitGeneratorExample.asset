@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NameSpace: Units
   MathClassName: MathU
+  MathClassFunctionsStartWithUpperCase: 1
   AddAnalysisIntoComments: 0
+  AggressiveInlining: 0
   BasicUnitFilter:
-    Units: -2147483513
+    Units: -2147483497
     Tags: -1
   GenerationBlocks:
   - name: first, no vec
@@ -30,18 +32,32 @@ MonoBehaviour:
       eComplexityBelowMaxInputUnitMinusOffset: -100
       nBase: -1
       nVec: 2
-      nHasComplexityBelow: 4
-      nComplexityBelowMaxInputUnitMinusOffset: 1
-  CustomOperations: []
+      nHasComplexityBelow: 3
+      nComplexityBelowMaxInputUnitMinusOffset: 2
+    debugMode: 0
+  CustomOperations:
+  - A: J
+    Op: 1
+    B: kgK
   CustomUnits: []
   CustomUnitPermutations:
   - Units:
-    - m
-    - s
-    - s
-    - mps
-    - N
-    - kg
+    - m, s, mps, N, kg
+    resultFilter:
+      eBase: -1
+      eVec: 3
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: -1
+      nVec: 3
+      nHasComplexityBelow: 3
+      nComplexityBelowMaxInputUnitMinusOffset: 2
+    debugMode: 0
+  - Units:
+    - m, mps, mps2, spm
+    - kg, kgpm, s, float
+    - kg, Npm, m2
+    - K, kg, J
     resultFilter:
       eBase: -1
       eVec: 3
@@ -51,7 +67,37 @@ MonoBehaviour:
       nVec: 3
       nHasComplexityBelow: 4
       nComplexityBelowMaxInputUnitMinusOffset: -1
+    debugMode: 0
+  - Units:
+    - kg, J
+    - Pa, float
+    - JpkgK, kg, float
+    - JpkgK, kgpm3
+    resultFilter:
+      eBase: -1
+      eVec: 3
+      eHasComplexityBelow: 100
+      eComplexityBelowMaxInputUnitMinusOffset: -100
+      nBase: -1
+      nVec: 3
+      nHasComplexityBelow: 6
+      nComplexityBelowMaxInputUnitMinusOffset: -3
+    debugMode: 0
   GenerationBlocksFinal:
+  - name: add missing ops
+    filterByBase: -1
+    filterByTag: -1
+    vecFilter: 3
+    resultFilter:
+      eBase: -1
+      eVec: 3
+      eHasComplexityBelow: 4
+      eComplexityBelowMaxInputUnitMinusOffset: 3
+      nBase: 0
+      nVec: 3
+      nHasComplexityBelow: -1
+      nComplexityBelowMaxInputUnitMinusOffset: 0
+    debugMode: 0
   - name: to floats
     filterByBase: -1
     filterByTag: -1
@@ -65,6 +111,7 @@ MonoBehaviour:
       nVec: 3
       nHasComplexityBelow: -1
       nComplexityBelowMaxInputUnitMinusOffset: 0
+    debugMode: 0
   - name: to vectors
     filterByBase: -1
     filterByTag: -1
@@ -78,6 +125,7 @@ MonoBehaviour:
       nVec: 3
       nHasComplexityBelow: -1
       nComplexityBelowMaxInputUnitMinusOffset: 0
+    debugMode: 0
   UnitEditors:
   - unit: rad
     suf: rad
@@ -176,9 +224,22 @@ MonoBehaviour:
     - unit: "mm\xB2"
       description: 
       mul: 0.000001
+    - unit: "cm\xB2"
+      description: 
+      mul: 0.0001
     - unit: "km\xB2"
       description: 
       mul: 1000000
+  - unit: kgpm3
+    suf: "kg\u2044m\xB3"
+    description: 
+    suffixes:
+    - unit: "g\u2044m\xB3"
+      description: 
+      mul: 0.000000001
+    - unit: "t\u2044m\xB3"
+      description: 
+      mul: 1000000000
   GenerateButton: 0
   DryRun: 0
   SaveInTestDir: 0

@@ -145,11 +145,6 @@ namespace Metric.Editor.Generator
 			AppendPublic(sb, $"static {unit.Name} operator -({unit.Name} a, {unit.Name} b) => new(a.{valName} - b.{valName});");
 			if (unit.VecSize == 1)
 			{
-				AppendPublic(sb, $"static {unit.Name} operator +(float a, {unit.Name} b) => new(a + b.{valName});");
-				AppendPublic(sb, $"static {unit.Name} operator -(float a, {unit.Name} b) => new(a - b.{valName});");
-				AppendPublic(sb, $"static {unit.Name} operator +({unit.Name} a, float b) => new(a.{valName} + b);");
-				AppendPublic(sb, $"static {unit.Name} operator -({unit.Name} a, float b) => new(a.{valName} - b);");
-                
 				AppendPublic(sb, $"static bool operator ==({unit.Name} a, {unit.Name} b) => a.{valName} == b.{valName};");
 				AppendPublic(sb, $"static bool operator !=({unit.Name} a, {unit.Name} b) => a.{valName} != b.{valName};");
 				AppendPublic(sb, $"static bool operator <({unit.Name} a, {unit.Name} b) => a.{valName} < b.{valName};");
